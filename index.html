@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="ar" dir="rtl">
+<html lang="en" dir="ltr">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -94,7 +94,7 @@
   </head>
   <body>
     <main class="container">
-      <section class="card">
+      <section class="card" lang="ar" dir="rtl">
         <h1>محاكي اختبار The International English Language Olympiad</h1>
         <p class="meta">
           اختبار تدريبي من 10 أسئلة في القواعد والمفردات والفهم القرائي. الزمن المتاح:
@@ -181,13 +181,31 @@
         questions.forEach((q, i) => {
           const block = document.createElement("fieldset");
           block.className = "question";
-          block.innerHTML = `<h3>${i + 1}) <span lang="en">${q.text}</span></h3>`;
+          const heading = document.createElement("h3");
+          const questionPrefix = document.createTextNode(`${i + 1}) `);
+          const questionText = document.createElement("span");
+          questionText.lang = "en";
+          questionText.textContent = q.text;
+          heading.appendChild(questionPrefix);
+          heading.appendChild(questionText);
+          block.appendChild(heading);
 
           q.options.forEach((option, optionIndex) => {
             const id = `q${i}-o${optionIndex}`;
             const label = document.createElement("label");
             label.setAttribute("for", id);
-            label.innerHTML = `<input type="radio" id="${id}" name="q${i}" value="${optionIndex}"> <span lang="en">${option}</span>`;
+            const input = document.createElement("input");
+            input.type = "radio";
+            input.id = id;
+            input.name = `q${i}`;
+            input.value = String(optionIndex);
+
+            const optionText = document.createElement("span");
+            optionText.lang = "en";
+            optionText.textContent = ` ${option}`;
+
+            label.appendChild(input);
+            label.appendChild(optionText);
             block.appendChild(label);
           });
 
