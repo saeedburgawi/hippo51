@@ -1,0 +1,257 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>محاكي اختبار The International English Language Olympiad</title>
+    <style>
+      :root {
+        --bg: #f6f8ff;
+        --card: #ffffff;
+        --text: #1f2937;
+        --muted: #6b7280;
+        --accent: #2563eb;
+        --ok: #047857;
+        --warn: #b45309;
+      }
+      body {
+        margin: 0;
+        font-family: "Segoe UI", Tahoma, Arial, sans-serif;
+        background: var(--bg);
+        color: var(--text);
+      }
+      .container {
+        max-width: 920px;
+        margin: 24px auto;
+        padding: 0 16px;
+      }
+      .card {
+        background: var(--card);
+        border-radius: 12px;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+        padding: 20px;
+      }
+      h1 {
+        margin-top: 0;
+        font-size: 1.5rem;
+      }
+      .meta {
+        color: var(--muted);
+        margin-bottom: 16px;
+      }
+      .question {
+        border: 1px solid #e5e7eb;
+        border-radius: 10px;
+        padding: 14px;
+        margin-bottom: 12px;
+      }
+      .question h3 {
+        margin: 0 0 10px;
+        font-size: 1rem;
+      }
+      label {
+        display: block;
+        margin: 6px 0;
+        cursor: pointer;
+      }
+      .actions {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+        margin-top: 16px;
+      }
+      button {
+        border: 0;
+        border-radius: 8px;
+        padding: 10px 16px;
+        cursor: pointer;
+        background: var(--accent);
+        color: #fff;
+        font-weight: 600;
+      }
+      button.secondary {
+        background: #374151;
+      }
+      .result {
+        margin-top: 16px;
+        padding: 12px;
+        border-radius: 8px;
+        display: none;
+      }
+      .result.ok {
+        background: #ecfdf5;
+        color: var(--ok);
+      }
+      .result.warn {
+        background: #fffbeb;
+        color: var(--warn);
+      }
+      .timer {
+        font-weight: 700;
+        color: var(--accent);
+      }
+    </style>
+  </head>
+  <body>
+    <main class="container">
+      <section class="card">
+        <h1>محاكي اختبار The International English Language Olympiad</h1>
+        <p class="meta">
+          اختبار تدريبي من 10 أسئلة في القواعد والمفردات والفهم القرائي. الزمن المتاح:
+          <span class="timer" id="timer">20:00</span>
+        </p>
+
+        <form id="exam-form"></form>
+
+        <div class="actions">
+          <button type="button" id="submit-btn">إنهاء الاختبار</button>
+          <button type="button" class="secondary" id="reset-btn">إعادة المحاولة</button>
+        </div>
+
+        <div id="result" class="result" aria-live="polite"></div>
+      </section>
+    </main>
+
+    <script>
+      const questions = [
+        {
+          text: "Choose the correct sentence:",
+          options: ["She go to school every day.", "She goes to school every day.", "She going to school every day."],
+          answer: 1,
+        },
+        {
+          text: "Synonym of 'rapid' is:",
+          options: ["slow", "quick", "late"],
+          answer: 1,
+        },
+        {
+          text: "If I ____ enough money, I would travel to London.",
+          options: ["have", "had", "will have"],
+          answer: 1,
+        },
+        {
+          text: "Choose the correct article: '___ honest person always tells the truth.'",
+          options: ["A", "An", "The"],
+          answer: 1,
+        },
+        {
+          text: "Antonym of 'ancient' is:",
+          options: ["modern", "old", "historic"],
+          answer: 0,
+        },
+        {
+          text: "He has lived here ____ 2015.",
+          options: ["for", "since", "from"],
+          answer: 1,
+        },
+        {
+          text: "Choose the correct passive form: 'People speak English worldwide.'",
+          options: ["English is spoken worldwide.", "English spoken worldwide.", "English was speaking worldwide."],
+          answer: 0,
+        },
+        {
+          text: "Read: 'Mona studies daily, so she improves quickly.' Why does Mona improve quickly?",
+          options: ["Because she studies daily.", "Because she sleeps more.", "Because she skips classes."],
+          answer: 0,
+        },
+        {
+          text: "Choose the correct preposition: 'He is interested ___ science.'",
+          options: ["in", "on", "at"],
+          answer: 0,
+        },
+        {
+          text: "Complete: 'By the time we arrived, the movie ____.'",
+          options: ["has started", "had started", "is starting"],
+          answer: 1,
+        },
+      ];
+
+      const form = document.getElementById("exam-form");
+      const resultBox = document.getElementById("result");
+      const submitBtn = document.getElementById("submit-btn");
+      const resetBtn = document.getElementById("reset-btn");
+      const timerElement = document.getElementById("timer");
+
+      let remainingSeconds = 20 * 60;
+      let timerId = null;
+
+      function renderQuestions() {
+        form.innerHTML = "";
+        questions.forEach((q, i) => {
+          const block = document.createElement("fieldset");
+          block.className = "question";
+          block.innerHTML = `<h3>${i + 1}) ${q.text}</h3>`;
+
+          q.options.forEach((option, optionIndex) => {
+            const id = `q${i}-o${optionIndex}`;
+            const label = document.createElement("label");
+            label.setAttribute("for", id);
+            label.innerHTML = `<input type="radio" id="${id}" name="q${i}" value="${optionIndex}"> ${option}`;
+            block.appendChild(label);
+          });
+
+          form.appendChild(block);
+        });
+      }
+
+      function updateTimer() {
+        const minutes = String(Math.floor(remainingSeconds / 60)).padStart(2, "0");
+        const seconds = String(remainingSeconds % 60).padStart(2, "0");
+        timerElement.textContent = `${minutes}:${seconds}`;
+      }
+
+      function stopTimer() {
+        if (timerId) {
+          clearInterval(timerId);
+          timerId = null;
+        }
+      }
+
+      function startTimer() {
+        stopTimer();
+        remainingSeconds = 20 * 60;
+        updateTimer();
+
+        timerId = setInterval(() => {
+          remainingSeconds -= 1;
+          updateTimer();
+
+          if (remainingSeconds <= 0) {
+            stopTimer();
+            gradeExam(true);
+          }
+        }, 1000);
+      }
+
+      function gradeExam(isAutoSubmit = false) {
+        stopTimer();
+        let score = 0;
+
+        questions.forEach((q, i) => {
+          const checked = document.querySelector(`input[name="q${i}"]:checked`);
+          if (checked && Number(checked.value) === q.answer) {
+            score += 1;
+          }
+        });
+
+        const percentage = Math.round((score / questions.length) * 100);
+        const passed = percentage >= 70;
+
+        resultBox.className = `result ${passed ? "ok" : "warn"}`;
+        resultBox.style.display = "block";
+        resultBox.textContent = `${isAutoSubmit ? "انتهى الوقت. " : ""}النتيجة: ${score}/${questions.length} (${percentage}%). ${passed ? "ممتاز! مستوى مناسب للأولمبياد." : "استمر بالتدريب لتحسين مستواك."}`;
+      }
+
+      submitBtn.addEventListener("click", () => gradeExam(false));
+      resetBtn.addEventListener("click", () => {
+        renderQuestions();
+        resultBox.style.display = "none";
+        resultBox.textContent = "";
+        startTimer();
+      });
+
+      renderQuestions();
+      startTimer();
+    </script>
+  </body>
+</html>
